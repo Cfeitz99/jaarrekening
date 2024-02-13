@@ -5,6 +5,12 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Request logging middleware
+app.use((req, res, next) => {
+    console.log(`Received ${req.method} request for ${req.url} from ${req.ip}`);
+    next();
+});
+
 // In-memory storage to track triggered webhooks
 let triggeredWebhooks = {};
 
