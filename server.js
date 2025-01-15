@@ -12,21 +12,34 @@ app.use((req, res, next) => {
 });
 
 app.get('/', async (req, res) => {
-  const { deal_id } = req.query; // Grab `deal_id` from the URL query parameter
+    const { deal_id } = req.query; // Extract `deal_id` from query parameters
 
-  // Trigger the webhook for every request with a deal_id
-  if (deal_id) {
-    try {
-      await axios.post('https://hooks.zapier.com/hooks/catch/16510018/3lepsis/', { deal_id }); // Send `deal_id` to Zapier
-      console.log(`Webhook triggered for deal_id ${deal_id}`);
-    } catch (error) {
-      console.error(`Failed to trigger webhook for deal_id ${deal_id}: ${error}`);
+    // Proceed only if `deal_id` is provided
+    if (deal_id) {
+        try {
+            // Trigger Zapier webhook
+            const zapierWebhookUrl = 'https://hooks.zapier.com/hooks/catch/14846189/3lepsis/';
+            await axios.post(zapierWebhookUrl, { deal_id });
+            console.log(`Webhook triggered successfully for deal_id ${deal_id}`);
+
+            // Call FastAPI endpoint to update HubSpot deal properties
+            const fastapiEndpoint = 'https://your-fastapi-endpoint.com/update-hubspot-deal';
+            const fastapiPayload = { deal_id };
+
+            const fastapiResponse = await axios.post(fastapiEndpoint, fastapiPayload);
+            console.log(`FastAPI call successful for deal_id ${deal_id}:`, fastapiResponse.data);
+        } catch (error) {
+            // Log specific error details
+            console.error(`Error processing deal_id ${deal_id}:`, error.message);
+        }
+    } else {
+        console.warn('No deal_id provided in the request.');
     }
-  }
 
-  res.sendFile(path.join(__dirname, 'index.html')); // Serve the index.html file
+    // Serve the static HTML file
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+    console.log(`Server is running on http://localhost:${port}`);
 });
